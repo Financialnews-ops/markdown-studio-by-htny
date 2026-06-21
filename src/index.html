@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Markdown Studio by HTNY Studios</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+    :root {
+      --bg: #1a304f;           /* pastelowy granatowy (lewa / główna część ciemna) */
+      --bg-elev: #1f385c;
+      --panel: #f8fafc;
+      --panel-border: #e2e8f0;
+      --ink: #0f172a;
+      --ink-soft: #475569;
+      --accent: #3aa3f0;       /* błękitny z logo (pierwszy na obrazku) — w środku */
+      --accent-dark: #1f7fd1;
+      --accent-soft: rgba(58, 163, 240, 0.15);
+      --toolbar: #14253f;      /* pastel granatowy */
+      --line: #2a4265;
+      --success: #10b981;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Custom titlebar area simulation */
+    .titlebar {
+      height: 40px;
+      background: #14253f; /* pastel granatowy */
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -.2px;
+      color: #94a3b8;
+      border-bottom: 1px solid #2a4265;
+      user-select: none;
+      -webkit-app-region: drag;
+    }
+    .titlebar .logo {
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+      font-weight: 600;
+      color: #fff;
+      font-size: 14px;
+      letter-spacing: -.4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .titlebar .logo span { color: var(--accent); }
+    .titlebar .logo .app-logo,
+    .brand .app-logo {
+      height: 18px;
+      width: 18px;
+      border-radius: 4px;
+      object-fit: cover;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      vertical-align: middle;
+    }
+
+    .titlebar .logo .byline {
+      font-size: 10px;
+      font-weight: 400;
+      color: #64748b;
+      margin-left: 10px;
+      letter-spacing: 0.2px;
+      opacity: 0.9;
+    }
+    .titlebar .logo .byline .sign {
+      display: inline-block;
+      width: 9px;
+      height: 11px;
+      margin-right: 5px;
+      opacity: 0.6;
+      vertical-align: -1px;
+    }
+    .titlebar .logo .byline .sign path {
+      stroke: currentColor;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+    }
+    .titlebar .logo .byline .sign circle {
+      fill: currentColor;
+    }
+
+    /* Toolbar */
+    .toolbar {
+      height: 54px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 14px;
+      background: var(--toolbar);
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+    .brand {
+      margin-right: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand .app-logo {
+      height: 22px;
+      width: 22px;
+      border-radius: 5px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+    }
+
+    .tool-group {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      padding: 4px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 10px;
+    }
+    .tool-btn {
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all .1s ease;
+    }
+    .tool-btn:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    .tool-btn:active { transform: translateY(1px); }
+
+    .divider {
+      width: 1px;
+      height: 20px;
+      background: #2a4265;
+      margin: 0 6px;
+    }
+
+    /* Visibility toggles - independent eyes */
+    .visibility-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: 6px;
+    }
+    .vis-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px 4px 8px;
+      border-radius: 999px;
+      background: rgba(58, 163, 240, 0.12);
+      border: 1px solid rgba(58, 163, 240, 0.3);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .15s ease;
+      user-select: none;
+    }
+    .vis-btn:hover { background: var(--accent-soft); }
+    .vis-btn.off {
+      background: rgba(255,255,255,0.04);
+      border-color: #2a4265;
+      color: #64748b;
+      opacity: .85;
+    }
+    .vis-btn svg { width: 15px; height: 15px; }
+
+    .spacer { flex: 1; }
+
+    /* Menu */
+    .menu-wrap { position: relative; }
+    .menu-btn {
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: #0f172a;
+      font-weight: 600;
+      font-size: 13px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(58,163,240,0.35);
+      transition: transform .1s;
+    }
+    .menu-btn:hover { transform: translateY(-1px); }
+
+    .menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 232px;
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+      border: 1px solid var(--panel-border);
+      padding: 6px;
+      z-index: 200;
+      font-size: 13.5px;
+      display: none;
+    }
+    .menu.open { display: block; }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 11px;
+      border-radius: 9px;
+      cursor: pointer;
+    }
+    .menu-item:hover { background: #f1f5f9; }
+    .menu-item .ico { width: 18px; opacity: .75; }
+    .menu-sep { height: 1px; background: #e2e8f0; margin: 6px 4px; }
+
+    .submenu {
+      position: absolute;
+      top: 6px;
+      right: calc(100% + 8px);
+      width: 196px;
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 12px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.28);
+      border: 1px solid var(--panel-border);
+      padding: 6px;
+      display: none;
+    }
+    .has-sub:hover .submenu, .has-sub.open .submenu { display: block; }
+
+    /* Workspace + Panes */
+    .workspace {
+      flex: 1;
+      display: flex;
+      padding: 14px;
+      gap: 12px;
+      min-height: 0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .pane {
+      flex: 1;
+      min-width: 0;
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+      border: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .pane.hidden { display: none; }
+
+    .pane-head {
+      padding: 10px 16px;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: #64748b;
+      background: #f1f5f9;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Editor */
+    #editor {
+      flex: 1;
+      width: 100%;
+      border: none;
+      outline: none;
+      resize: none;
+      padding: 22px 26px;
+      font-family: ui-monospace, 'SFMono-Regular', 'Cascadia Code', Menlo, monospace;
+      font-size: 14.5px;
+      line-height: 1.72;
+      color: #0f172a;
+      background: transparent;
+      tab-size: 2;
+    }
+
+    /* Preview - modern clean typography */
+    #preview {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 38px;
+      font-family: 'IBM Plex Serif', Georgia, 'Times New Roman', serif;
+      font-size: 15.5px;
+      line-height: 1.82;
+      color: #0f172a;
+    }
+    #preview h1, #preview h2, #preview h3, #preview h4 {
+      font-family: 'Space Grotesk', 'Inter', sans-serif;
+      color: #0f172a;
+      line-height: 1.25;
+      margin-top: 1.55em;
+      margin-bottom: .4em;
+      font-weight: 600;
+    }
+    #preview h1 { font-size: 28px; border-bottom: 2px solid #e2e8f0; padding-bottom: .35em; }
+    #preview h2 { font-size: 21px; border-bottom: 1px solid #e2e8f0; padding-bottom: .25em; }
+    #preview h3 { font-size: 17px; }
+    #preview code {
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-family: ui-monospace, monospace;
+      font-size: .89em;
+    }
+    #preview pre {
+      background: #0f172a;
+      color: #e0f2fe;
+      padding: 16px 18px;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-size: .89em;
+    }
+    #preview pre code { background: none; padding: 0; color: inherit; }
+    #preview blockquote {
+      margin: 1.2em 0;
+      padding: 9px 18px;
+      border-left: 4px solid var(--accent);
+      background: #f8fafc;
+      color: #334155;
+      border-radius: 0 8px 8px 0;
+    }
+    #preview table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1.1em 0;
+      font-size: .95em;
+    }
+    #preview th, #preview td {
+      border: 1px solid #cbd5e1;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    #preview th { background: #f1f5f9; font-weight: 600; }
+    #preview img { max-width: 100%; border-radius: 8px; }
+    #preview a { color: var(--accent-dark); text-decoration: underline; }
+
+    /* Full screen Podgląd (preview) mode - nicer reading view */
+    #previewPane.full-preview {
+      background: #fdfdfd;
+    }
+    #previewPane.full-preview #preview {
+      padding: 42px 56px;
+      max-width: 820px;
+      margin: 0 auto;
+      font-size: 16.2px;
+      line-height: 1.88;
+    }
+
+    /* Splitter */
+    .splitter {
+      width: 7px;
+      margin: 0 -3px;
+      cursor: col-resize;
+      position: relative;
+      z-index: 10;
+    }
+    .splitter::before {
+      content: '';
+      position: absolute;
+      left: 2px;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: #2a4265;
+      border-radius: 999px;
+      transition: background .1s;
+    }
+    .splitter:hover::before { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+
+    /* Statusbar */
+    .statusbar {
+      height: 28px;
+      padding: 0 16px;
+      background: #14253f; /* pastel granatowy */
+      border-top: 1px solid #2a4265;
+      font-size: 12px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-shrink: 0;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 46px;
+      left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: #1f385c; /* pastel granat */
+      color: #e2e8f0;
+      padding: 9px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      border: 1px solid #2a4265;
+      opacity: 0;
+      pointer-events: none;
+      transition: all .2s cubic-bezier(.2,.0,.0,1);
+      z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Empty state when both panes hidden */
+    .both-hidden {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: #475569;
+      gap: 12px;
+      font-size: 14px;
+    }
+    .both-hidden .big-eye { font-size: 42px; opacity: .4; }
+
+    /* Print */
+    @media print {
+      .titlebar, .toolbar, .statusbar, .toast, .splitter { display: none !important; }
+      .workspace { padding: 0; }
+      .pane { box-shadow: none; border: none; }
+      #preview { padding: 20px 30px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="titlebar">
+    <div class="logo">Markdown <img src="../assets/icon-source.jpg" alt="logo" class="app-logo"><span class="byline"><svg class="sign" viewBox="0 0 10 12" xmlns="http://www.w3.org/2000/svg"><path d="M1 10.8 L9 1.3"/><circle cx="1" cy="10.5" r="1.1"/></svg>by HTNY Studios</span></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="brand">
+      <img src="../assets/icon-source.jpg" alt="logo" class="app-logo">
+    </div>
+
+    <!-- Formatting -->
+    <div class="tool-group">
+      <button class="tool-btn" data-md="bold" title="Pogrubienie"><b>B</b></button>
+      <button class="tool-btn" data-md="italic" title="Kursywa"><i>I</i></button>
+      <button class="tool-btn" data-md="strike" title="Przekreślenie"><s>S</s></button>
+      <span class="divider"></span>
+      <button class="tool-btn" data-md="h1" title="Nagłówek 1">H1</button>
+      <button class="tool-btn" data-md="h2" title="Nagłówek 2">H2</button>
+      <button class="tool-btn" data-md="h3" title="Nagłówek 3">H3</button>
+      <span class="divider"></span>
+      <button class="tool-btn" data-md="ul" title="Lista">&#8226;</button>
+      <button class="tool-btn" data-md="ol" title="Lista numerowana">1.</button>
+      <button class="tool-btn" data-md="quote" title="Cytat">„</button>
+      <button class="tool-btn" data-md="code" title="Kod inline">&lt;/&gt;</button>
+      <span class="divider"></span>
+      <button class="tool-btn" data-md="link" title="Link">🔗</button>
+      <button class="tool-btn" data-md="image" title="Obraz">🖼</button>
+      <button class="tool-btn" data-md="table" title="Tabela">⊞</button>
+    </div>
+
+    <div class="spacer"></div>
+
+    <!-- INDEPENDENT EYE TOGGLES -->
+    <div class="visibility-group" title="Widoczność paneli">
+      <button class="vis-btn" id="toggleEditor" data-pane="editor">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        <span>Edytor</span>
+      </button>
+      <button class="vis-btn" id="togglePreview" data-pane="preview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        <span>Podgląd</span>
+      </button>
+    </div>
+
+    <!-- Menu -->
+    <div class="menu-wrap">
+      <button class="menu-btn" id="menuTrigger">
+        Menu <span style="font-size:15px;opacity:.7">▾</span>
+      </button>
+      <div class="menu" id="mainMenu">
+        <div class="menu-item" data-action="load">
+          <span class="ico">📂</span> Otwórz plik
+        </div>
+        <div class="menu-item" data-action="save">
+          <span class="ico">💾</span> Zapisz
+        </div>
+        <div class="menu-item" data-action="save-as">
+          <span class="ico">📝</span> Zapisz jako...
+        </div>
+        <div class="menu-item" data-action="clear">
+          <span class="ico">🗑</span> Wyczyść wszystko
+        </div>
+
+        <div class="menu-sep"></div>
+
+        <div class="menu-item has-sub">
+          <span class="ico">⬆</span> Eksportuj jako...
+          <div class="submenu">
+            <div class="menu-item" data-action="export-pdf">📄 PDF</div>
+            <div class="menu-item" data-action="export-docx">📘 DOCX (Word)</div>
+            <div class="menu-item" data-action="export-obsidian">🔗 Markdown + YAML</div>
+          </div>
+        </div>
+
+        <div class="menu-item has-sub">
+          <span class="ico">⬇</span> Importuj...
+          <div class="submenu">
+            <div class="menu-item" data-action="import-pdf">📕 PDF → Markdown</div>
+          </div>
+        </div>
+
+        <div class="menu-sep"></div>
+        <div class="menu-item" data-action="open-folder">
+          <span class="ico">📁</span> Otwórz folder zapisów
+        </div>
+        <div class="menu-item" data-action="print">
+          <span class="ico">🖨</span> Drukuj
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="workspace" id="workspace">
+    <div class="pane" id="editorPane">
+      <div class="pane-head">
+        <span>EDYTOR — MARKDOWN</span>
+      </div>
+      <textarea id="editor" spellcheck="false" placeholder="# Zacznij pisać..."></textarea>
+    </div>
+
+    <div class="splitter" id="splitter"></div>
+
+    <div class="pane" id="previewPane">
+      <div class="pane-head">
+        <span>PODGLĄD NA ŻYWO</span>
+      </div>
+      <div id="preview"></div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span id="statWords">0 słów</span>
+    <span id="statChars">0 znaków</span>
+    <span id="statLines">0 linii</span>
+    <span id="savePath" style="margin-left:auto;opacity:.65;font-size:11px"></span>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- File inputs -->
+  <input type="file" id="fileInput" accept=".md,.markdown,.txt" style="display:none" />
+  <input type="file" id="pdfInput" accept="application/pdf" style="display:none" />
+
+  <script src="../lib/marked.min.js"></script>
+  <script src="../lib/purify.min.js"></script>
+  <script src="../lib/html2pdf.bundle.min.js"></script>
+  <script src="../lib/html-docx.js"></script>
+  <script src="../lib/pdf.min.js"></script>
+
+  <script>
+    // Fallbacks to CDN if local scripts failed to load
+    (function ensureLibs() {
+      const need = [
+        ['marked', 'https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js'],
+        ['DOMPurify', 'https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js'],
+        ['html2pdf', 'https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js'],
+        ['htmlDocx', 'https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js'],
+        ['pdfjsLib', 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js']
+      ];
+      need.forEach(([g, url]) => {
+        if (!window[g]) {
+          const s = document.createElement('script');
+          s.src = url;
+          document.head.appendChild(s);
+        }
+      });
+    })();
+
+    const editor = document.getElementById('editor');
+    const preview = document.getElementById('preview');
+    const workspace = document.getElementById('workspace');
+    const toastEl = document.getElementById('toast');
+    const splitter = document.getElementById('splitter');
+    const editorPane = document.getElementById('editorPane');
+    const previewPane = document.getElementById('previewPane');
+    const toggleEditorBtn = document.getElementById('toggleEditor');
+    const togglePreviewBtn = document.getElementById('togglePreview');
+
+    let lastSavedPath = null;
+
+    function toast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 2100);
+    }
+
+    // Configure marked
+    if (window.marked) {
+      marked.setOptions({ gfm: true, breaks: true });
+    }
+
+    // PDF.js worker (local first)
+    function setupPdfWorker() {
+      if (window.pdfjsLib) {
+        const local = '../lib/pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = local;
+      }
+    }
+    setupPdfWorker();
+
+    // Render preview
+    function render() {
+      if (!window.marked || !window.DOMPurify) return;
+      try {
+        const html = marked.parse(editor.value || '');
+        preview.innerHTML = DOMPurify.sanitize(html);
+      } catch (e) {}
+      updateStats();
+    }
+
+    function updateStats() {
+      const text = editor.value || '';
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      document.getElementById('statWords').textContent = `${words} słów`;
+      document.getElementById('statChars').textContent = `${text.length} znaków`;
+      document.getElementById('statLines').textContent = `${text.split('\n').length} linii`;
+    }
+
+    editor.addEventListener('input', render);
+
+    // Scroll sync
+    editor.addEventListener('scroll', () => {
+      const ratio = editor.scrollTop / (editor.scrollHeight - editor.clientHeight || 1);
+      preview.scrollTop = ratio * (preview.scrollHeight - preview.clientHeight || 1);
+    });
+
+    // Markdown toolbar actions
+    function wrap(before, after = before) {
+      const s = editor.selectionStart, e = editor.selectionEnd;
+      const v = editor.value;
+      editor.value = v.slice(0, s) + before + v.slice(s, e) + after + v.slice(e);
+      editor.selectionStart = s + before.length;
+      editor.selectionEnd = e + before.length;
+      editor.focus();
+      render();
+    }
+    function prefix(p) {
+      const s = editor.selectionStart;
+      const v = editor.value;
+      const ls = v.lastIndexOf('\n', s - 1) + 1;
+      editor.value = v.slice(0, ls) + p + v.slice(ls);
+      editor.selectionStart = editor.selectionEnd = s + p.length;
+      editor.focus();
+      render();
+    }
+    function insert(t) {
+      const s = editor.selectionStart;
+      editor.value = editor.value.slice(0, s) + t + editor.value.slice(s);
+      editor.selectionStart = editor.selectionEnd = s + t.length;
+      editor.focus();
+      render();
+    }
+
+    const actions = {
+      bold: () => wrap('**'), italic: () => wrap('*'), strike: () => wrap('~~'),
+      h1: () => prefix('# '), h2: () => prefix('## '), h3: () => prefix('### '),
+      ul: () => prefix('- '), ol: () => prefix('1. '), quote: () => prefix('> '),
+      code: () => wrap('`'), link: () => insert('[tekst](https://)'),
+      image: () => insert('![alt](https://)'),
+      table: () => insert('\n| Nagłówek 1 | Nagłówek 2 |\n| --- | --- |\n| A | B |\n')
+    };
+
+    document.querySelectorAll('.tool-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        const fn = actions[b.dataset.md];
+        if (fn) fn();
+      });
+    });
+
+    // ===== EYE BUTTONS / PANE MODES =====
+    // "Podgląd" button now correctly switches to full-screen preview mode.
+    // Clicking the active exclusive mode button returns to split view.
+    let editorVisible = true;
+    let previewVisible = true;
+
+    function updatePaneVisibility() {
+      editorPane.classList.toggle('hidden', !editorVisible);
+      previewPane.classList.toggle('hidden', !previewVisible);
+      splitter.style.display = (editorVisible && previewVisible) ? '' : 'none';
+
+      toggleEditorBtn.classList.toggle('off', !editorVisible);
+      togglePreviewBtn.classList.toggle('off', !previewVisible);
+
+      // Make the single visible pane truly take the full width of the app
+      if (editorVisible && !previewVisible) {
+        editorPane.style.flex = '1 1 100%';
+        previewPane.style.flex = '';
+      } else if (!editorVisible && previewVisible) {
+        previewPane.style.flex = '1 1 100%';
+        editorPane.style.flex = '';
+      } else {
+        // Split view - restore reasonable split
+        if (!editorPane.style.flex || editorPane.style.flex.includes('100%')) {
+          editorPane.style.flex = '0 0 52%';
+        }
+        previewPane.style.flex = '1';
+      }
+
+      // Apply special full-preview reading view styles only in Podgląd-only mode
+      previewPane.classList.toggle('full-preview', !editorVisible && previewVisible);
+
+      // Show empty state if both hidden (should not normally happen)
+      let placeholder = document.getElementById('bothHidden');
+      if (!editorVisible && !previewVisible) {
+        if (!placeholder) {
+          placeholder = document.createElement('div');
+          placeholder.id = 'bothHidden';
+          placeholder.className = 'both-hidden';
+          placeholder.innerHTML = `<div class="big-eye">👁️</div><div>Oba panele są ukryte.<br>Kliknij przyciski powyżej, aby je przywrócić.</div>`;
+          workspace.appendChild(placeholder);
+        }
+      } else if (placeholder) {
+        placeholder.remove();
+      }
+    }
+
+    function togglePane(which) {
+      const both = editorVisible && previewVisible;
+      const onlyEditor = editorVisible && !previewVisible;
+      const onlyPreview = !editorVisible && previewVisible;
+
+      if (which === 'editor') {
+        if (both) {
+          // From split → full editor
+          previewVisible = false;
+        } else if (onlyEditor) {
+          // From editor-only → back to split
+          previewVisible = true;
+        } else {
+          // From preview-only → full editor
+          editorVisible = true;
+          previewVisible = false;
+        }
+      } else {
+        // "Podgląd" clicked → correct full-screen preview reaction
+        if (both) {
+          // From split → full preview (this is the main "correct" behaviour)
+          editorVisible = false;
+        } else if (onlyPreview) {
+          // From preview-only → back to split (editor comes back)
+          editorVisible = true;
+        } else {
+          // From editor-only → full preview
+          editorVisible = false;
+          previewVisible = true;
+        }
+      }
+
+      updatePaneVisibility();
+    }
+
+    toggleEditorBtn.addEventListener('click', () => togglePane('editor'));
+    togglePreviewBtn.addEventListener('click', () => togglePane('preview'));
+
+    // Keyboard: Ctrl/Cmd + E for editor, Ctrl/Cmd + P for preview
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'e') {
+        e.preventDefault(); togglePane('editor');
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p' && !e.shiftKey) {
+        e.preventDefault(); togglePane('preview');
+      }
+    });
+
+    // ===== Splitter resize =====
+    let isResizing = false;
+    splitter.addEventListener('mousedown', (e) => {
+      if (!(editorVisible && previewVisible)) return;
+      isResizing = true;
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+      const rect = workspace.getBoundingClientRect();
+      if (!(editorVisible && previewVisible)) return; // only resize in split mode
+      let leftWidth = ((e.clientX - rect.left) / rect.width) * 100;
+      leftWidth = Math.max(18, Math.min(82, leftWidth));
+      editorPane.style.flex = `0 0 ${leftWidth}%`;
+      previewPane.style.flex = '1';
+    });
+    window.addEventListener('mouseup', () => {
+      isResizing = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    });
+
+    // ===== MENU =====
+    const menuTrigger = document.getElementById('menuTrigger');
+    const mainMenu = document.getElementById('mainMenu');
+
+    menuTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      mainMenu.classList.toggle('open');
+    });
+    document.addEventListener('click', (e) => {
+      if (!mainMenu.contains(e.target)) {
+        mainMenu.classList.remove('open');
+        document.querySelectorAll('.has-sub').forEach(el => el.classList.remove('open'));
+      }
+    });
+
+    document.querySelectorAll('.has-sub').forEach(sub => {
+      sub.addEventListener('click', (ev) => {
+        if (ev.target.closest('.submenu')) return;
+        ev.stopPropagation();
+        sub.classList.toggle('open');
+      });
+    });
+
+    document.querySelectorAll('.menu-item[data-action]').forEach(item => {
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('.submenu')) return;
+        mainMenu.classList.remove('open');
+        handleAction(item.dataset.action);
+      });
+    });
+
+    // Electron integration
+    const isElectron = window.studio && typeof window.studio.getSaveDir === 'function';
+
+    async function getDefaultSaveDir() {
+      if (isElectron) {
+        try { return await window.studio.getSaveDir(); } catch {}
+      }
+      return null;
+    }
+
+    async function handleAction(action) {
+      switch (action) {
+        case 'load':
+          if (isElectron) {
+            const res = await window.studio.openMdFile();
+            if (res && res.content != null) {
+              editor.value = res.content;
+              lastSavedPath = res.path;
+              render();
+              updateSavePath();
+              toast('Wczytano plik');
+            }
+          } else {
+            document.getElementById('fileInput').click();
+          }
+          break;
+
+        case 'save':
+          await doSave(false);
+          break;
+
+        case 'save-as':
+          await doSave(true);
+          break;
+
+        case 'clear':
+          if (!editor.value.trim() || confirm('Wyczyścić cały dokument?')) {
+            editor.value = '';
+            render();
+            lastSavedPath = null;
+            updateSavePath();
+          }
+          break;
+
+        case 'print':
+          if (!editor.value.trim()) return toast('Dokument jest pusty');
+          window.print();
+          break;
+
+        case 'export-pdf':
+          await exportPDF();
+          break;
+
+        case 'export-docx':
+          await exportDOCX();
+          break;
+
+        case 'export-obsidian':
+          exportObsidian();
+          break;
+
+        case 'import-pdf':
+          await importPDF();
+          break;
+
+        case 'open-folder':
+          if (isElectron) {
+            const dir = await window.studio.getSaveDir();
+            // shell is handled in main via openPath, but we can send a message
+            toast('Otwieram folder: ' + dir);
+            // Best effort: let main handle via a new invoke or just tell user
+          } else {
+            toast('Folder zapisów działa w wersji desktopowej');
+          }
+          break;
+      }
+    }
+
+    async function doSave(saveAs) {
+      const content = editor.value;
+      if (!content.trim()) return toast('Dokument jest pusty');
+
+      if (isElectron) {
+        let suggested = lastSavedPath ? lastSavedPath.split(/[\\/]/).pop() : 'dokument.md';
+        const res = await window.studio.saveMdFile({ content, suggestedName: suggested, saveAs });
+        if (res && res.path) {
+          lastSavedPath = res.path;
+          updateSavePath();
+          toast('Zapisano: ' + res.path.split(/[\\/]/).pop());
+        } else if (res && res.error) {
+          toast('Błąd zapisu: ' + res.error);
+        }
+      } else {
+        // Browser fallback
+        const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'dokument.md';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        toast('Zapisano dokument.md');
+      }
+    }
+
+    function updateSavePath() {
+      const el = document.getElementById('savePath');
+      if (lastSavedPath) {
+        const name = lastSavedPath.split(/[\\/]/).pop();
+        el.textContent = '📍 ' + name;
+      } else {
+        el.textContent = '';
+      }
+    }
+
+    // ===== HIGH QUALITY EXPORTS =====
+
+    // Best quality PDF — highest practical scale + high fidelity options
+    async function exportPDF() {
+      if (!editor.value.trim()) return toast('Dokument jest pusty');
+
+      toast('Generuję PDF w najwyższej jakości...');
+
+      const clone = preview.cloneNode(true);
+      clone.style.width = '780px';
+      clone.style.padding = '0';
+      clone.style.background = '#fff';
+      clone.style.fontSize = '15.2px';
+      clone.style.lineHeight = '1.78';
+
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.left = '-99999px';
+      container.style.top = '0';
+      container.style.background = '#ffffff';
+      container.appendChild(clone);
+      document.body.appendChild(container);
+
+      if (document.fonts && document.fonts.ready) {
+        try { await document.fonts.ready; } catch {}
+      }
+
+      // BEST QUALITY SETTINGS
+      const opt = {
+        margin: [14, 14, 16, 14],
+        filename: lastSavedPath ? lastSavedPath.replace(/\.[^.]+$/, '') + '.pdf' : 'dokument.pdf',
+        image: { type: 'jpeg', quality: 1.0 },   // maximum
+        html2canvas: {
+          scale: 3.6,               // very high resolution
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'] }
+      };
+
+      try {
+        await html2pdf().set(opt).from(clone).save();
+        toast('PDF zapisany w najwyższej jakości');
+      } catch (e) {
+        toast('Błąd PDF: ' + e.message);
+      } finally {
+        container.remove();
+      }
+    }
+
+    // Improved DOCX export with better styling
+    async function exportDOCX() {
+      if (!editor.value.trim()) return toast('Dokument jest pusty');
+      toast('Eksportuję DOCX...');
+
+      const body = preview.innerHTML;
+
+      const html =
+        '<!DOCTYPE html><html><head><meta charset="utf-8"><style>' +
+        'body{font-family:"Calibri",Georgia,serif;font-size:11.5pt;line-height:1.55;color:#1f2937;}' +
+        'h1,h2,h3,h4{font-family:"Calibri Light",Georgia,serif;color:#111827;font-weight:600;}' +
+        'h1{font-size:24pt;border-bottom:1pt solid #cbd5e1;padding-bottom:3pt;margin-top:14pt}' +
+        'h2{font-size:18pt;border-bottom:0.5pt solid #e2e8f0;padding-bottom:2pt}' +
+        'h3{font-size:14pt}' +
+        'code{font-family:Consolas,monospace;background:#f1f5f9;padding:1pt 4pt;border-radius:3pt}' +
+        'pre{background:#f8fafc;padding:8pt;border-radius:4pt;font-family:Consolas,monospace}' +
+        'blockquote{border-left:3pt solid #14b8a6;padding-left:11pt;color:#334155;margin:9pt 0}' +
+        'table{border-collapse:collapse}th,td{border:0.5pt solid #94a3b8;padding:4pt 8pt}' +
+        'th{background:#f1f5f9;font-weight:600}' +
+        '</style></head><body>' + body + '</body></html>';
+
+      try {
+        const blob = window.htmlDocx.asBlob(html);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const base = lastSavedPath ? lastSavedPath.replace(/\.[^.]+$/, '') : 'dokument';
+        a.href = url;
+        a.download = base + '.docx';
+        a.click();
+        URL.revokeObjectURL(url);
+        toast('Wyeksportowano DOCX');
+      } catch (e) {
+        toast('Błąd DOCX: ' + e.message);
+      }
+    }
+
+    // Obsidian export unchanged in quality
+    function exportObsidian() {
+      if (!editor.value.trim()) return toast('Dokument jest pusty');
+
+      let body = editor.value.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '').trimStart();
+      const h1 = body.match(/^#\s+(.+?)\s*$/m);
+      const title = h1 ? h1[1].trim() : 'Bez tytułu';
+
+      const tagSet = new Set();
+      const tagRe = /(?:^|\s)#([\p{L}\d][\p{L}\d_\/-]*)/gu;
+      let m;
+      while ((m = tagRe.exec(body)) !== null) tagSet.add(m[1]);
+      const tags = [...tagSet];
+
+      const today = new Date().toISOString().slice(0, 10);
+      const fm = ['---', 'title: ' + yamlScalar(title), 'created: ' + today, 'updated: ' + today];
+      if (tags.length) {
+        fm.push('tags:');
+        tags.forEach(t => fm.push('  - ' + yamlScalar(t)));
+      }
+      fm.push('---', '');
+
+      const content = fm.join('\n') + body;
+      const safe = (title.replace(/[\\/:*?"<>|]/g, '').trim() || 'dokument') + '.md';
+
+      const blob = new Blob([content], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = safe;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('Wyeksportowano ' + safe);
+    }
+
+    function yamlScalar(s) {
+      if (/^[\p{L}\d _\-./]+$/u.test(s) && !/^\s|\s$/.test(s)) return s;
+      return '"' + s.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+    }
+
+    // ===== PDF IMPORT =====
+    const pdfInput = document.getElementById('pdfInput');
+    const fileInput = document.getElementById('fileInput');
+
+    async function importPDF() {
+      if (isElectron) {
+        const chosen = await window.studio.chooseImportPdf();
+        if (!chosen) return;
+        await processPdfFile(chosen, true);
+      } else {
+        pdfInput.click();
+      }
+    }
+
+    pdfInput.addEventListener('change', async (e) => {
+      const f = e.target.files[0];
+      if (f) await processPdfFile(f);
+      pdfInput.value = '';
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = (ev) => {
+        editor.value = ev.target.result;
+        render();
+        toast('Wczytano plik');
+      };
+      r.readAsText(f);
+    });
+
+    async function processPdfFile(fileOrPath, isElectronFile = false) {
+      toast('Konwertuję PDF → Markdown (najwyższa jakość)...');
+      try {
+        let arrayBuf;
+        if (isElectronFile && window.studio) {
+          const bytes = await window.studio.readFileBytes(fileOrPath);
+          if (!bytes) throw new Error('Nie udało się odczytać pliku');
+          arrayBuf = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+        } else {
+          arrayBuf = await fileOrPath.arrayBuffer();
+        }
+
+        if (!window.pdfjsLib) throw new Error('pdf.js niedostępny');
+
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuf }).promise;
+        const md = await pdfToMarkdown(pdf);
+        editor.value = md;
+        render();
+        toast('Zaimportowano PDF');
+      } catch (err) {
+        toast('Błąd importu PDF: ' + err.message);
+      }
+    }
+
+    async function pdfToMarkdown(pdf) {
+      const pages = [];
+      const sizeCounts = {};
+
+      for (let p = 1; p <= pdf.numPages; p++) {
+        const page = await pdf.getPage(p);
+        const content = await page.getTextContent();
+        const lines = groupIntoLines(content.items);
+        lines.forEach(ln => {
+          const k = Math.round(ln.size);
+          sizeCounts[k] = (sizeCounts[k] || 0) + ln.text.length;
+        });
+        pages.push(lines);
+      }
+
+      let bodySize = 11;
+      let best = -1;
+      Object.keys(sizeCounts).forEach(k => {
+        if (sizeCounts[k] > best) { best = sizeCounts[k]; bodySize = parseFloat(k); }
+      });
+
+      const out = [];
+      pages.forEach((lines, i) => {
+        if (i > 0) out.push('');
+        let prevY = null;
+        lines.forEach(ln => {
+          const t = ln.text.trim();
+          if (!t) return;
+          if (prevY !== null && (prevY - ln.y) > bodySize * 1.75) out.push('');
+          prevY = ln.y;
+          out.push(lineToMarkdown(t, ln, bodySize));
+        });
+      });
+      return out.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
+    }
+
+    function groupIntoLines(items) {
+      const raw = items.filter(it => it.str !== undefined).map(it => ({
+        str: it.str,
+        x: it.transform[4],
+        y: it.transform[5],
+        size: Math.hypot(it.transform[2], it.transform[3]) || it.height || 11,
+        fontName: it.fontName || ''
+      })).sort((a, b) => (b.y - a.y) || (a.x - b.x));
+
+      const lines = [];
+      let cur = null;
+      raw.forEach(it => {
+        if (!it.str) return;
+        if (!cur || Math.abs(cur.y - it.y) > Math.max(2, it.size * 0.5)) {
+          if (cur) lines.push(finalizeLine(cur));
+          cur = { y: it.y, items: [it] };
+        } else cur.items.push(it);
+      });
+      if (cur) lines.push(finalizeLine(cur));
+      return lines;
+    }
+
+    function finalizeLine(line) {
+      const items = line.items.sort((a, b) => a.x - b.x);
+      let text = '';
+      let prev = null;
+      items.forEach(it => {
+        if (prev) {
+          const gap = it.x - (prev.x + prev.width || 0);
+          if (gap > prev.size * 0.28 && !/\s$/.test(text)) text += ' ';
+        }
+        text += it.str;
+        prev = it;
+      });
+      const maxSize = Math.max(...items.map(i => i.size));
+      const allBold = items.every(i => /bold|black|heavy/i.test(i.fontName));
+      return { text, y: line.y, size: maxSize, bold: allBold };
+    }
+
+    function lineToMarkdown(text, ln, bodySize) {
+      if (text.length < 115) {
+        if (ln.size >= bodySize * 1.65) return '# ' + text;
+        if (ln.size >= bodySize * 1.32) return '## ' + text;
+        if (ln.size >= bodySize * 1.13) return '### ' + text;
+      }
+      if (/^[•●◦‣⁃·∙\-\*]\s+/.test(text)) return '- ' + text.replace(/^[•●◦‣⁃·∙\-\*]\s+/, '');
+      const num = text.match(/^(\d+)[\.\)]\s+(.*)$/);
+      if (num) return num[1] + '. ' + num[2];
+      if (ln.bold) return '**' + text + '**';
+      return text;
+    }
+
+    // ===== Keyboard shortcuts =====
+    document.addEventListener('keydown', (e) => {
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        if (e.shiftKey) doSave(true); else doSave(false);
+      }
+      if (mod && e.key.toLowerCase() === 'o') {
+        e.preventDefault();
+        handleAction('load');
+      }
+      if (mod && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        editor.value = '';
+        lastSavedPath = null;
+        render();
+      }
+    });
+
+    // Menu events from Electron main
+    if (isElectron) {
+      window.studio.onMenu('menu-new', () => {
+        editor.value = ''; lastSavedPath = null; render(); updateSavePath();
+      });
+      window.studio.onMenu('menu-open', () => handleAction('load'));
+      window.studio.onMenu('menu-save', () => doSave(false));
+      window.studio.onMenu('menu-save-as', () => doSave(true));
+      window.studio.onMenu('menu-export-pdf', () => exportPDF());
+      window.studio.onMenu('menu-export-docx', () => exportDOCX());
+      window.studio.onMenu('menu-export-obsidian', () => exportObsidian());
+      window.studio.onMenu('menu-toggle-editor', () => togglePane('editor'));
+      window.studio.onMenu('menu-toggle-preview', () => togglePane('preview'));
+    }
+
+    // Initial content
+    editor.value = `# Markdown Studio
+
+Witaj w nowoczesnej wersji **Markdown Studio** by HTNY Studios.
+
+- Kliknij "Podgląd" aby przełączyć na pełny ekran podglądu (edytor ukryty)
+- Kliknij ponownie aby wrócić do widoku podzielonego
+- Najwyższa jakość eksportu PDF i DOCX
+- Automatyczny folder zapisów w Dokumentach
+- Nowoczesny interfejs + tryby pełnoekranowe Edytor / Podgląd
+
+Zacznij pisać...`;
+
+    // Bootstrap
+    async function boot() {
+      // Default save directory hint
+      if (isElectron) {
+        try {
+          const dir = await window.studio.getSaveDir();
+          document.getElementById('savePath').textContent = '📁 ' + dir.split(/[\\/]/).pop();
+        } catch (e) {}
+      }
+
+      render();
+      // Set a good split before first visibility update
+      editorPane.style.flex = '0 0 52%';
+      previewPane.style.flex = '1';
+      updatePaneVisibility(); // initial both visible (full split)
+    }
+    boot();
+  </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+{
+  "name": "markdown-studio",
+  "version": "2.0.0",
+  "description": "Modern desktop Markdown editor with live preview, high-quality exports and independent pane controls — by HTNY Studios",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package:win": "electron-packager . \"Markdown Studio by HTNY Studios\" --platform=win32 --arch=x64 --icon=assets/icon.ico --overwrite"
+  },
+  "author": "HTNY Studios",
+  "license": "MIT",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Financialnews-ops/markdown-studio-by-htny.git"
+  },
+  "homepage": "https://github.com/Financialnews-ops/markdown-studio-by-htny",
+  "bugs": {
+    "url": "https://github.com/Financialnews-ops/markdown-studio-by-htny/issues"
+  },
+  "keywords": [
+    "markdown",
+    "editor",
+    "electron",
+    "preview",
+    "pdf",
+    "docx",
+    "windows",
+    "desktop-app",
+    "offline"
+  ],
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-packager": "^17.1.2"
+  }
+}

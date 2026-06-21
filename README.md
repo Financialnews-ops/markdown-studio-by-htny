@@ -53,11 +53,19 @@ npm start
 
 ### Building a Windows executable
 
+Portable build (unpacked folder):
+
 ```bash
 npm run package:win
 ```
 
-The packaged app is written to a `Markdown Studio by HTNY Studios-win32-x64/` folder (ignored by Git).
+Windows installer with a setup wizard (NSIS, recommended):
+
+```bash
+npm run dist:win
+```
+
+The installer (`Markdown Studio by HTNY Studios Setup <version>.exe`) is written to the `release/` folder. Pushing a `v*` tag also builds it automatically via GitHub Actions and attaches it to Releases.
 
 ### License
 
@@ -112,11 +120,19 @@ npm start
 
 ### Budowanie pliku wykonywalnego dla Windows
 
+Wersja przenośna (rozpakowany folder):
+
 ```bash
 npm run package:win
 ```
 
-Spakowana aplikacja trafi do folderu `Markdown Studio by HTNY Studios-win32-x64/` (pomijanego przez Git).
+Instalator z kreatorem instalacji (NSIS, zalecane):
+
+```bash
+npm run dist:win
+```
+
+Instalator (`Markdown Studio by HTNY Studios Setup <wersja>.exe`) trafia do folderu `release/`. Wypchnięcie tagu `v*` buduje go również automatycznie przez GitHub Actions i dołącza do Releases.
 
 ### Licencja
 

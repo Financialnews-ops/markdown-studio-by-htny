@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "package:win": "electron-packager . \"Markdown Studio by HTNY Studios\" --platform=win32 --arch=x64 --icon=assets/icon.ico --overwrite"
+    "package:win": "electron-packager . \"Markdown Studio by HTNY Studios\" --platform=win32 --arch=x64 --icon=assets/icon.ico --overwrite",
+    "dist:win": "electron-builder --win nsis --x64"
   },
   "author": "HTNY Studios",
   "license": "MIT",
@@ -31,6 +32,44 @@
   ],
   "devDependencies": {
     "electron": "^31.7.7",
+    "electron-builder": "^24.13.3",
     "electron-packager": "^17.1.2"
+  },
+  "build": {
+    "appId": "com.htnystudios.markdownstudio",
+    "productName": "Markdown Studio by HTNY Studios",
+    "copyright": "Copyright © 2026 HTNY Studios",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "lib/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Markdown Studio",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico"
+    }
   }
 }

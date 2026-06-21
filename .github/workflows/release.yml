@@ -1,0 +1,45 @@
+name: Build & Release (Windows)
+
+# Uruchamia się po wypchnięciu tagu w formacie v* (np. v2.0.0)
+# Triggers on pushing a tag matching v* (e.g. v2.0.0)
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Package Windows app
+        run: npm run package:win
+
+      - name: Zip the packaged app
+        shell: pwsh
+        run: |
+          $out = "Markdown Studio by HTNY Studios-win32-x64"
+          Compress-Archive -Path "$out\*" -DestinationPath "Markdown-Studio-${{ github.ref_name }}-win-x64.zip" -Force
+
+      - name: Create GitHub Release and upload artifact
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Markdown Studio ${{ github.ref_name }}
+          files: Markdown-Studio-${{ github.ref_name }}-win-x64.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
